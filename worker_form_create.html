@@ -1,0 +1,2324 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Zone Management{% endblock %}
+
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ui/css/app.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<main class="min-h-screen mb-5">
+    <!--header title-->
+    <div class="py-3 px-5 flex items-center justify-between">
+        <div>
+            <a href="{% url 'zone:worker_list' %}" class="button-min-default">
+                <i class="fa-solid fa-arrow-left"></i>
+                 <span>Back</span>
+            </a>
+        </div>
+        <div>
+            <div class="border-b-2 border-blue-500 px-2 pb-1">
+                <h1 class="text-lg font-bold text-blue-500">{{ title }}</h1>
+                <p class="text-xs text-gray-500 fon-semibold">
+                  {% if worker %}
+                  Update worker information and manage documents
+                  {% else %}
+                      Create a new worker with personal and work details
+                  {% endif %}
+                </p>
+              </div>
+        </div>
+    </div>
+     <!--header title end--> 
+
+     <!--form-->
+    <div class="px-5 py-3">
+        <form method="post" enctype="multipart/form-data" novalidate id="workerForm">
+            {% csrf_token %}
+    
+            <div class=" rounded-lg border border-gray-200">
+                <div class="border-b border-gray-200 py-2 px-3 flex items-center justify-between">
+                    <h4><i class="bi bi-upc-scan me-2"></i>OCR Document Scanner</h4>
+                    <button type="button" class="button-min-primary py-1 px-2" id="rescan-btn">
+                        <div class="flex items-center gap-2">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            <span>Rescan Document</span>
+                        </div>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mt-3 px-3 pb-3">
+                    <div class="p-3 border border-gray-200 rounded-lg">
+                        <h4><i class="fa fa-file-image me-2"></i>Scan Document Image</h4>
+                        <div id="defaultImg" class="mt-3 p-2 rounded bg-gray-100">
+                            <div class="flex items-center justify-center py-4">
+                                <i class="bi bi-image text-4xl text-gray-500"></i>
+                            </div>
+                        </div>
+                        <div id="previewImg" class="mt-3 p-2 rounded bg-gray-100" style="display: none;">
+                            <img id="imageWhite" class="w-full h-full object-contain rounded-lg"/>
+                        </div>
+                    </div>
+                    <div class="p-3 border border-gray-200 rounded-lg">
+                        <h4><i class="fa fa-list-check me-2"></i>Extracted Data Preview</h4>
+                        <div class="mt-3 p-2 space-y-2" id="textExtractedDefault">
+                            <div class="p-1 rounded bg-gray-100 w-full"></div>
+                            <div class="p-1 rounded bg-gray-100 w-full"></div>
+                            <div class="p-1 rounded bg-gray-100 w-full"></div>
+                            <div class="p-1 rounded bg-gray-100 w-full"></div>
+                            <div class="p-1 rounded bg-gray-100 w-full"></div>
+                            <div class="p-1 rounded bg-gray-100 w-full"></div>
+                        </div>
+                        <div class="mt-3 p-2 rounded space-y-2" id="textExtractedBlock">
+                           <div class="w-full flex gap-2 text-xs">
+                                
+                           </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        
+            <!-- Personal Information start -->
+            <div class=" rounded-lg border border-gray-200 mt-4">
+                <div class="border-b border-gray-200 py-2 px-3">
+                    <h4><i class="bi bi-person me-2"></i>Personal Information</h4>
+                </div>
+
+                <div class="flex items-start">
+                    <div class="w-3/4">
+                        <div class="grid grid-cols-2 gap-3 mt-4 px-3 pb-3">
+                            <div>
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                    First Name <span class="required-field"></span>
+                                </label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.first_name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                    Last Name <span class="required-field"></span>
+                                </label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.last_name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.name.id_for_label }}" class="form-label flex items-center gap-2">
+                                    
+                                    Full Name Display  <div class="text-xs text-blue-500">( Auto-filled if left empty )</div>
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                               
+                            </div>
+                            <div>
+                                <label for="{{ form.sex.id_for_label }}" class="form-label">
+                                   
+                                    Gender <span class="required-field"></span>
+                                </label>
+                                {{ form.sex }}
+                                {% if form.sex.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.sex.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                        </div>
+                         <!-- Personal Details start -->
+                        <div class="grid grid-cols-2 gap-3 mt-1 px-3 pb-3">
+                            <div>
+                                <label for="{{ form.nationality.id_for_label }}" class="form-label">
+                                   
+                                    Nationality <span class="required-field"></span>
+                                </label>
+                                {{ form.nationality }}
+                                {% if form.nationality.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.nationality.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label for="{{ form.dob.id_for_label }}" class="form-label">
+                                    
+                                    Date of Birth <span class="required-field"></span>
+                                </label>
+                                {{ form.dob }}
+                                {% if form.dob.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.dob.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            
+                        </div>
+        
+                         <!-- Personal Details end-->
+        
+                        <!-- Contact Information start -->
+                        <div class="grid grid-cols-2 gap-3 mt-2 px-3 pb-3">
+                            <div >
+                                <label for="{{ form.nationality.id_for_label }}" class="form-label">Calculated from birth date
+                                </label>
+                                <div id="age-display" class="border rounded p-2">
+                                    <span>Age: <span id="calculated-age">--</span> years</span>
+                                </div>
+                               
+                            </div>
+                            <div>
+                                <label for="{{ form.phone_number.id_for_label }}" class="form-label flex items-center gap-2">
+             
+                                    Phone Number <span class="required-field"></span>
+                                    <div class="text-xs text-blue-500">( Include country code (e.g., +855) )</div>
+                                </label>
+                                {{ form.phone_number }}
+                                {% if form.phone_number.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.phone_number.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                
+                            </div>
+                            
+                        </div>
+                        
+                        <!-- Contact Information end-->
+                    </div>
+                    <div class="w-1/4 pr-4">
+                        <div class="application-photo-section mt-4">
+                            <label class="form-label photo-section-label">
+                                <i class="bi bi-camera me-1"></i>Worker Photo <span class="required-field">*</span>
+                            </label>
+                            <div class="photo-mode-toggle">
+                                <button type="button" class="mode-btn" id="file-mode-btn" onclick="switchToFile()">
+                                    <i class="bi bi-upload"></i> File
+                                </button>
+                                <button type="button" class="mode-btn active" id="camera-mode-btn" onclick="switchToCamera()">
+                                    <i class="bi bi-camera"></i> Camera
+                                </button>
+                            </div>
+                            
+                            <!-- File Upload Mode -->
+                            <div class="application-photo-upload" id="file-upload-area" onclick="document.getElementById('{{ form.photo.id_for_label }}').click();" style="display: none;">
+                                {% if worker and worker.photo %}
+                                    <div class="current-photo-display">
+                                        <img src="{% url 'zone:serve_worker_photo' worker.id %}" alt="Current photo" class="application-photo-current">
+                                        <div class="photo-overlay">
+                                            <i class="bi bi-pencil-fill"></i>
+                                            <small>Click to change</small>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="photo-placeholder" id="photo-placeholder">
+                                        <div class="placeholder-content">
+                                            <i class="bi bi-person-plus-fill"></i>
+                                            <span>Upload Photo</span>
+                                            <small>Click here</small>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                <div class="photo-preview" id="photo-preview" style="display: none;">
+                                    <img id="photo-preview-img" class="application-photo-preview">
+                                    <div class="photo-overlay">
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                        <small>Photo selected</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Camera Mode -->
+                            <div class="application-photo-upload" id="camera-upload-area">
+                                {% if worker and worker.photo %}
+                                    <!-- Show current photo in camera mode too -->
+                                    <div class="current-photo-display" id="camera-current-photo">
+                                        <img src="{% url 'zone:serve_worker_photo' worker.id %}" alt="Current photo" class="application-photo-current">
+                                        <div class="photo-overlay">
+                                            <i class="bi bi-camera-fill"></i>
+                                            <small>Current photo - Use camera to replace</small>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="camera-container active" id="camera-container">
+                                    <video id="camera-video" class="camera-video" autoplay muted playsinline style="display: none;"></video>
+                                    <canvas id="camera-canvas" style="display: none;"></canvas>
+                                    
+                                    <div class="camera-controls" id="camera-controls">
+                                        <button type="button" class="camera-btn camera-btn-start" id="start-camera-btn" onclick="startCamera()">
+                                            <i class="bi bi-camera-video"></i> 
+                                            {% if worker and worker.photo %}Replace Photo{% else %}Start Camera{% endif %}
+                                        </button>
+                                        <button type="button" class="camera-btn camera-btn-capture" id="capture-btn" onclick="capturePhoto()" style="display: none;">
+                                            <i class="bi bi-camera"></i> Capture
+                                        </button>
+                                        <button type="button" class="camera-btn camera-btn-stop" id="stop-camera-btn" onclick="stopCamera()" style="display: none;">
+                                            <i class="bi bi-camera-video-off"></i> Stop
+                                        </button>
+                                        <button type="button" class="camera-btn camera-btn-start" id="retake-camera-btn" onclick="startCamera()" style="display: none;">
+                                            <i class="bi bi-arrow-clockwise"></i> Retake Photo
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="camera-status" id="camera-status">
+                                        {% if worker and worker.photo %}Click "Replace Photo" to take a new photo{% else %}Click "Start Camera" to begin{% endif %}
+                                    </div>
+                                    <div class="camera-error" id="camera-error" style="display: none;"></div>
+                                    
+                                    <!-- Captured photo preview -->
+                                    <div class="photo-preview" id="camera-photo-preview" style="display: none;">
+                                        <img id="camera-photo-preview-img" class="application-photo-preview">
+                                        <div class="photo-overlay">
+                                            <i class="bi bi-check-circle-fill text-success"></i>
+                                            <small>Photo captured</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="photo-requirements">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    JPG, PNG, GIF, BMP<br>
+                                    Max size: 5MB<br>
+                                    Professional headshot preferred
+                                </small>
+                            </div>
+                            
+                            <!-- Hide the default Django file widget since we have our custom photo display -->
+                            <div style="display: none;">
+                                {{ form.photo }}
+                            </div>
+                            {% if form.photo.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.photo.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+                <div class="grid grid-cols-1 gap-3 px-3 pb-3">
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="form-label flex items-center gap-2">
+                            Email Address <div class="text-xs text-blue-500"> ( Personal email for communication )</div>
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger">
+                                {% for error in form.email.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                    </div>
+                </div>
+                <div>
+                     <!-- Emergency Contact Information -->
+                     <div class="px-3">
+                        <h6 class="text-primary mb-2 font-bold">
+                            <i class="bi bi-shield-exclamation me-1"></i>
+                            Emergency Contact Information
+                        </h6>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mt-2 px-3 pb-2">
+                       
+                        <div>
+                            <label for="{{ form.emergency_contact.id_for_label }}" class="form-label flex items-center gap-2">
+                      
+                                Emergency Contact Name <span class="required-field"></span>
+                                <!--<div class="text-xs text-blue-500">Full name of emergency contact</div>-->
+                            </label>
+                            {{ form.emergency_contact }}
+                            {% if form.emergency_contact.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.emergency_contact.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                        </div>
+                        <div>
+                            <label for="{{ form.emergency_phone.id_for_label }}" class="form-label flex items-center gap-2">
+                              
+                                Emergency Contact Phone <span class="required-field"></span>
+                                <!--<div class="text-xs text-blue-500">Phone number to contact in emergency</div>-->
+                            </label>
+                            {{ form.emergency_phone }}
+                            {% if form.emergency_phone.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.emergency_phone.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3 mt-1 px-3 pb-3">
+                        <div>
+                            <label for="{{ form.address.id_for_label }}" class="form-label flex items-center gap-2">
+                               
+                                Home Address <span class="required-field"></span>
+                                <div class="text-xs text-blue-500">( Complete home address including street, city, province/state, and postal code )</div>
+                            </label>
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.address.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                           
+                        </div>
+                    </div>
+                </div>
+
+            
+
+            </div>
+            <!-- Personal Information end -->
+
+            <!-- Identification start -->
+            <div class=" rounded-lg border border-gray-200 mt-4">
+                <div class="border-b border-gray-200 py-2 px-3">
+                    <h4><i class="bi bi-credit-card me-2"></i>Identification</h4>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mt-3 px-3 pb-3">
+                    <div>
+                        <label for="{{ form.worker_id.id_for_label }}" class="form-label flex items-center gap-2">
+                            Worker ID
+                            <div class="text-xs text-blue-500">( Auto-generated if left empty )</div>
+                        </label>
+                        {{ form.worker_id }}
+                        {% if form.worker_id.errors %}
+                            <div class="text-danger">
+                                {% for error in form.worker_id.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                    </div>
+                    <div>
+                        <label for="{{ form.staff_id.id_for_label }}" class="form-label">
+                            Staff ID
+                        </label>
+                        {{ form.staff_id }}
+                        {% if form.staff_id.errors %}
+                            <div class="text-danger">
+                                {% for error in form.staff_id.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.handle.id_for_label }}" class="form-label">
+                            Handle/Username
+                        </label>
+                        {{ form.handle }}
+                        {% if form.handle.errors %}
+                            <div class="text-danger">
+                                {% for error in form.handle.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            Full Name
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                            <div class="text-danger">
+                                {% for error in form.name.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <!-- Identification end -->
+
+            <!-- Work Information start -->
+            <div class=" rounded-lg border border-gray-200 mt-4">
+                <div class="border-b border-gray-200 py-2 px-3">
+                    <h4><i class="bi bi-briefcase me-2"></i>Work Information</h4>
+                </div>
+                <div class="grid grid-cols-3 gap-3 mt-3 px-3 pb-3">
+                    <div>
+                        <label for="{{ form.zone.id_for_label }}" class="form-label">
+                            Zone <span class="required-field"></span>
+                        </label>
+                        {{ form.zone }}
+                        {% if form.zone.errors %}
+                            <div class="text-danger">
+                                {% for error in form.zone.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.position.id_for_label }}" class="form-label">
+                            Position
+                        </label>
+                        {{ form.position }}
+                        {% if form.position.errors %}
+                            <div class="text-danger">
+                                {% for error in form.position.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.group.id_for_label }}" class="form-label">
+                            Group/Team
+                        </label>
+                        {{ form.group }}
+                        {% if form.group.errors %}
+                            <div class="text-danger">
+                                {% for error in form.group.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 mt-3 px-3 pb-3">
+                    <div>
+                        <label for="{{ form.building.id_for_label }}" class="form-label">
+                            Building
+                        </label>
+                        {{ form.building }}
+                        {% if form.building.errors %}
+                            <div class="text-danger">
+                                {% for error in form.building.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div >
+                        <label for="{{ form.floor.id_for_label }}" class="form-label">
+                            Floor
+                        </label>
+                        {{ form.floor }}
+                        {% if form.floor.errors %}
+                            <div class="text-danger">
+                                {% for error in form.floor.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <label for="{{ form.status.id_for_label }}" class="form-label">
+                            Status
+                        </label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <div class="text-danger">
+                                {% for error in form.status.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3 mt-3 px-3 pb-3">
+                    <div>
+                        <label for="{{ form.performance_rating.id_for_label }}" class="form-label">
+                            Performance Rating (1-5)
+                        </label>
+                        {{ form.performance_rating }}
+                        {% if form.performance_rating.errors %}
+                            <div class="text-danger">
+                                {% for error in form.performance_rating.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+            <!-- Work Information end -->
+
+            <!-- Documents start -->
+            <div class=" rounded-lg border border-gray-200 mt-4">
+                <div class="border-b border-gray-200 py-2 px-3">
+                    <h4><i class="bi bi-file-earmark-text me-2"></i>Documents</h4>
+                </div>
+                <div id="document-formset" class="px-3 pb-3">
+                    {{ formset.management_form }}
+                    {% for form_doc in formset %}
+                        <div class="document-form border-b border-gray-200 pt-3" data-form-idx="{{ forloop.counter0 }}">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 >Document #{{ forloop.counter }}</h5>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if formset.can_delete and form_doc.instance.pk %}
+                                        <div class="delete-checkbox">
+                                            {{ form_doc.DELETE }}
+                                            <label for="{{ form_doc.DELETE.id_for_label }}" class="form-check-label">
+                                                Delete this document
+                                            </label>
+                                        </div>
+                                    {% endif %}
+                                    <button type="button" class="remove-document-btn" onclick="removeDocumentForm(this)" {% if form_doc.instance.pk %}style="display: none;"{% endif %}>
+                                        <i class="bi bi-trash"></i>Remove
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {% for hidden in form_doc.hidden_fields %}
+                                {{ hidden }}
+                            {% endfor %}
+                            
+                            <div class="grid grid-cols-2 gap-3 mt-1 pb-3">
+                                <div>
+                                    <label for="{{ form_doc.document_type.id_for_label }}" class="form-label">
+                                        Document Type
+                                    </label>
+                                    {{ form_doc.document_type }}
+                                    {% if form_doc.document_type.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form_doc.document_type.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form_doc.document_number.id_for_label }}" class="form-label">
+                                        Document Number
+                                    </label>
+                                    {{ form_doc.document_number }}
+                                    {% if form_doc.document_number.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form_doc.document_number.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form_doc.issue_date.id_for_label }}" class="form-label">
+                                        Issue Date
+                                    </label>
+                                    {{ form_doc.issue_date }}
+                                    {% if form_doc.issue_date.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form_doc.issue_date.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form_doc.expiry_date.id_for_label }}" class="form-label">
+                                        Expiry Date
+                                    </label>
+                                    {{ form_doc.expiry_date }}
+                                    {% if form_doc.expiry_date.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form_doc.expiry_date.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 mt-2 pb-3">
+                                <div>
+                                    <label for="{{ form_doc.issuing_authority.id_for_label }}" class="form-label">
+                                        Issuing Authority
+                                    </label>
+                                    {{ form_doc.issuing_authority }}
+                                    {% if form_doc.issuing_authority.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form_doc.issuing_authority.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label for="{{ form_doc.document_file.id_for_label }}" class="form-label">
+                                        Document File
+                                    </label>
+                                    {{ form_doc.document_file }}
+                                    {% if form_doc.document_file.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form_doc.document_file.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-3 mt-0 pb-3">
+                                <div>
+                                    <label for="{{ form_doc.notes.id_for_label }}" class="form-label">
+                                        Notes
+                                    </label>
+                                    {{ form_doc.notes }}
+                                    {% if form_doc.notes.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form_doc.notes.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    <div>
+                        <button type="button" class="add-document-btn mt-3" id="add-document-btn">
+                            <i class="bi bi-plus-circle me-1"></i> Add Another Document
+                        </button>
+                    </div>
+                </div>
+                
+               
+            </div>
+            <!-- Documents end -->
+
+             <!-- Additional Notes start -->
+             <div class=" rounded-lg border border-gray-200 mt-4">
+                <div class="border-b border-gray-200 py-2 px-3">
+                    <h4><i class="bi bi-sticky me-2"></i>Additional Notes</h4>
+                </div>
+                <div class="mt-3 px-3 pb-3">
+                    <label for="{{ form.notes.id_for_label }}" class="form-label flex items-center gap-2">Notes
+                        <div class="text-xs text-blue-500">( Any additional information about the worker )</div>
+                    </label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <div class="text-red-500 text-sm">
+                            {% for error in form.notes.errors %}{{ error }}{% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                </div>
+            </div>
+            <!-- Additional Notes end -->
+
+            <!-- Display Form Errors -->
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if formset.non_form_errors %}
+                <div class="alert alert-danger">
+                    {% for error in formset.non_form_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!---button save and cancel -->
+            <div class="flex justify-end gap-2 mt-4">
+               
+                <button type="button" class="button-min-default">
+                    <i class="fa fa-times"></i>
+                    <span>Cancel</span>
+                </button>
+                <button type="button" class="button-min-primary ">
+                   
+                   <div class="flex items-center">
+                    <i class="bi bi-check-circle me-1"></i>{{ submit_text }}
+                   </div>
+                </button>
+            </div>
+            <!---button save and cancel end -->
+   
+
+
+         </form>
+    </div>
+     <!--form end-->
+<!-- Zone and Building data for JavaScript -->
+{{ zones_data|json_script:"zones-data" }}
+{{ buildings_data|json_script:"buildings-data" }}
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // Set up event listeners
+        const dobInput = document.getElementById('{{ form.dob.id_for_label }}');
+        if (dobInput) {
+            dobInput.addEventListener('change', updateAgeDisplay);
+            updateAgeDisplay(); // Initial calculation
+        }
+    
+    });
+
+    // Update age display when date of birth changes
+    function updateAgeDisplay() {
+        const dobInput = document.getElementById('{{ form.dob.id_for_label }}');
+        const ageDisplay = document.getElementById('calculated-age');
+        
+        if (dobInput && ageDisplay) {
+            const age = calculateAge(dobInput.value);
+            if (age !== null && age >= 0) {
+                ageDisplay.textContent = age;
+                ageDisplay.parentElement.style.color = age >= 18 ? '#10b981' : '#ef4444';
+            } else {
+                ageDisplay.textContent = '--';
+                ageDisplay.parentElement.style.color = '#6b7280';
+            }
+        }
+    }
+
+    // Calculate age from date of birth
+    function calculateAge(dateOfBirth) {
+        if (!dateOfBirth) return null;
+        
+        const today = new Date();
+        const birthDate = new Date(dateOfBirth);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        
+        return age;
+    }
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get form elements
+        const zoneSelect = document.getElementById('{{ form.zone.id_for_label }}');
+        const buildingSelect = document.getElementById('{{ form.building.id_for_label }}');
+        const floorSelect = document.getElementById('{{ form.floor.id_for_label }}');
+    
+        // Get data for chain selects
+        const zonesData = JSON.parse(document.getElementById('zones-data').textContent);
+        const buildingsData = JSON.parse(document.getElementById('buildings-data').textContent);
+    
+        // Zone change handler for building updates
+        if (zoneSelect && buildingSelect) {
+            zoneSelect.addEventListener('change', function() {
+                const zoneId = this.value;
+                updateBuildingOptions(zoneId);
+                // Clear floor options when zone changes
+                clearFloorOptions();
+            });
+        }
+    
+        // Building change handler for floor updates
+        if (buildingSelect && floorSelect) {
+            buildingSelect.addEventListener('change', function() {
+                const buildingId = this.value;
+                updateFloorOptions(buildingId);
+            });
+        }
+    
+        function updateBuildingOptions(zoneId) {
+            if (zoneId) {
+                // Show loading state
+                buildingSelect.innerHTML = '<option value="">Loading buildings...</option>';
+                buildingSelect.disabled = true;
+                
+                // Use AJAX to get fresh building data to ensure consistency
+                fetch('/zone/ajax/get-buildings-by-zone/?zone_id=' + zoneId)
+                    .then(response => response.json())
+                    .then(data => {
+                        buildingSelect.innerHTML = '<option value="">Select Building</option>';
+                        
+                        if (data.buildings && data.buildings.length > 0) {
+                            data.buildings.forEach(building => {
+                                const option = document.createElement('option');
+                                option.value = building.id;
+                                option.textContent = building.name;
+                                buildingSelect.appendChild(option);
+                            });
+                            buildingSelect.disabled = false;
+                        } else {
+                            const option = document.createElement('option');
+                            option.value = '';
+                            option.textContent = 'No buildings available for this zone';
+                            option.disabled = true;
+                            buildingSelect.appendChild(option);
+                            buildingSelect.disabled = true;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching buildings:', error);
+                        // Fallback to static data if AJAX fails
+                        const filteredBuildings = buildingsData.filter(function(building) {
+                            return building.zone_id && building.zone_id.toString() === zoneId;
+                        });
+                        
+                        buildingSelect.innerHTML = '<option value="">Select Building</option>';
+                        filteredBuildings.forEach(building => {
+                            const option = document.createElement('option');
+                            option.value = building.id;
+                            option.textContent = building.name;
+                            buildingSelect.appendChild(option);
+                        });
+                        buildingSelect.disabled = filteredBuildings.length === 0;
+                    });
+            } else {
+                // Clear building options if no zone selected
+                buildingSelect.innerHTML = '<option value="">Select Zone First</option>';
+                buildingSelect.disabled = true;
+            }
+            
+            // Clear floor options when building options change
+            clearFloorOptions();
+        }
+    
+        function updateFloorOptions(buildingId) {
+            if (buildingId) {
+                // Show loading state
+                floorSelect.innerHTML = '<option value="">Loading floors...</option>';
+                floorSelect.disabled = true;
+                
+                fetch('{% url "zone:get_floors_by_building" %}?building_id=' + buildingId)
+                    .then(response => response.json())
+                    .then(data => {
+                        floorSelect.innerHTML = '<option value="">Select Floor</option>';
+                        
+                        if (data.floors && data.floors.length > 0) {
+                            data.floors.forEach(floor => {
+                                const option = document.createElement('option');
+                                option.value = floor.id;
+                                option.textContent = floor.name;
+                                floorSelect.appendChild(option);
+                            });
+                            floorSelect.disabled = false;
+                        } else {
+                            const option = document.createElement('option');
+                            option.value = '';
+                            option.textContent = 'No floors available for this building';
+                            option.disabled = true;
+                            floorSelect.appendChild(option);
+                            floorSelect.disabled = true;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching floors:', error);
+                        floorSelect.innerHTML = '<option value="">Error loading floors</option>';
+                        floorSelect.disabled = true;
+                    });
+            } else {
+                clearFloorOptions();
+            }
+        }
+    
+        function clearFloorOptions() {
+            floorSelect.innerHTML = '<option value="">Select Building First</option>';
+            floorSelect.disabled = true;
+        }
+    
+        // Initialize chain selects
+        function initializeChainSelects() {
+            // Set initial states
+            if (!zoneSelect.value) {
+                buildingSelect.disabled = true;
+                floorSelect.disabled = true;
+                buildingSelect.innerHTML = '<option value="">Select Zone First</option>';
+                floorSelect.innerHTML = '<option value="">Select Building First</option>';
+            }
+            
+            {% if worker %}
+            // Initialize for editing existing worker
+            if (zoneSelect.value) {
+                updateBuildingOptions(zoneSelect.value);
+                // Set building value after options are populated
+                setTimeout(function() {
+                    buildingSelect.value = '{{ worker.building.id|default:"" }}';
+                    if (buildingSelect.value) {
+                        updateFloorOptions(buildingSelect.value);
+                        // Set floor value after options are populated
+                        setTimeout(function() {
+                            floorSelect.value = '{{ worker.floor.id|default:"" }}';
+                        }, 100);
+                    }
+                }, 100);
+            }
+            {% endif %}
+        }
+        
+        // Initialize the chain selects on page load
+        initializeChainSelects();
+    
+        // Document formset management
+        const addDocumentBtn = document.getElementById('add-document-btn');
+        const documentFormset = document.getElementById('document-formset');
+        
+        // Store the original template form
+        let documentTemplate = null;
+        if (documentFormset) {
+            const existingForm = document.querySelector('.document-form');
+            if (existingForm) {
+                documentTemplate = existingForm.cloneNode(true);
+            }
+        }
+        
+        if (addDocumentBtn && documentFormset) {
+            let formIdx = parseInt(document.querySelector('#id_documents-TOTAL_FORMS').value);
+            
+            addDocumentBtn.addEventListener('click', function() {
+                let emptyForm;
+                
+                // Check if we have existing forms to clone from
+                const existingForm = document.querySelector('.document-form');
+                if (existingForm) {
+                    emptyForm = existingForm.cloneNode(true);
+                } else if (documentTemplate) {
+                    // Use stored template if no existing forms
+                    emptyForm = documentTemplate.cloneNode(true);
+                } else {
+                    // Create new form from scratch if no template exists
+                    emptyForm = createNewDocumentForm(formIdx);
+                }
+                
+                emptyForm.dataset.formIdx = formIdx;
+                
+                // Update form indexes
+                const formIdxRegex = new RegExp('documents-\\d+-', 'g');
+                emptyForm.innerHTML = emptyForm.innerHTML.replace(formIdxRegex, 'documents-' + formIdx + '-');
+                
+                // Clear values
+                emptyForm.querySelectorAll('input, select, textarea').forEach(function(input) {
+                    if (input.type !== 'hidden') {
+                        input.value = '';
+                    }
+                });
+                
+                // Update form title and numbering
+                emptyForm.querySelector('h5').textContent = 'Document #' + (formIdx + 1);
+                
+                // Show remove button for new forms (hide delete checkbox)
+                const deleteCheckbox = emptyForm.querySelector('.delete-checkbox');
+                const removeBtn = emptyForm.querySelector('.remove-document-btn');
+                if (deleteCheckbox) {
+                    deleteCheckbox.style.display = 'none';
+                }
+                if (removeBtn) {
+                    removeBtn.style.display = 'inline-flex';
+                }
+                
+                // Insert before the add button
+                addDocumentBtn.parentNode.insertBefore(emptyForm, addDocumentBtn);
+                
+                // Update total forms count
+                formIdx++;
+                document.querySelector('#id_documents-TOTAL_FORMS').value = formIdx;
+                
+                // Update document numbers for all forms
+                updateDocumentNumbers();
+            });
+        }
+    
+        // Photo preview functionality
+        const photoInput = document.getElementById('{{ form.photo.id_for_label }}');
+        
+        if (photoInput) {
+            photoInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const placeholder = document.getElementById('photo-placeholder');
+                const preview = document.getElementById('photo-preview');
+                const previewImg = document.getElementById('photo-preview-img');
+                
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImg.src = e.target.result;
+                        if (placeholder) placeholder.style.display = 'none';
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.style.display = 'none';
+                    if (placeholder) placeholder.style.display = 'block';
+                }
+            });
+        }
+    
+        // Auto-resize textareas
+        document.querySelectorAll('textarea').forEach(function(textarea) {
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+            });
+            
+            // Initial resize
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        });
+    
+        // Date field improvements
+        document.querySelectorAll('input[type="date"]').forEach(function(input) {
+            input.addEventListener('change', function() {
+                if (this.value) {
+                    this.classList.add('has-value');
+                } else {
+                    this.classList.remove('has-value');
+                }
+            });
+            
+            // Initial check
+            if (input.value) {
+                input.classList.add('has-value');
+            }
+        });
+    });
+    
+    // Function to remove a document form
+    function removeDocumentForm(button) {
+        const documentForm = button.closest('.document-form');
+        if (documentForm) {
+            documentForm.remove();
+            
+            // Update total forms count
+            const totalForms = document.querySelector('#id_documents-TOTAL_FORMS');
+            totalForms.value = parseInt(totalForms.value) - 1;
+            
+            // Update document numbers for remaining forms
+            updateDocumentNumbers();
+        }
+    }
+    
+    // Function to update document numbers
+    function updateDocumentNumbers() {
+        const documentForms = document.querySelectorAll('.document-form');
+        documentForms.forEach((form, index) => {
+            const title = form.querySelector('h5');
+            if (title) {
+                title.textContent = 'Document #' + (index + 1);
+            }
+        });
+    }
+    
+    // Function to create a new document form from scratch
+    function createNewDocumentForm(formIdx) {
+        const formHtml = `
+            <div class="document-form" data-form-idx="${formIdx}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5>Document #${formIdx + 1}</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="delete-checkbox" style="display: none;">
+                            <input type="checkbox" name="documents-${formIdx}-DELETE" id="id_documents-${formIdx}-DELETE">
+                            <label for="id_documents-${formIdx}-DELETE" class="form-check-label">
+                                Delete this document
+                            </label>
+                        </div>
+                        <button type="button" class="remove-document-btn" onclick="removeDocumentForm(this)">
+                            <i class="bi bi-trash"></i>Remove
+                        </button>
+                    </div>
+                </div>
+                
+                <input type="hidden" name="documents-${formIdx}-id" id="id_documents-${formIdx}-id">
+                
+                <div class="row g-1">
+                    <div class="col-md-3">
+                        <label for="id_documents-${formIdx}-document_type" class="form-label">
+                            Document Type
+                        </label>
+                        <select name="documents-${formIdx}-document_type" class="form-select" id="id_documents-${formIdx}-document_type">
+                            <option value="">---------</option>
+                            <option value="passport">Passport</option>
+                            <option value="id_card">ID Card</option>
+                            <option value="driving_license">Driving License</option>
+                            <option value="work_permit">Work Permit</option>
+                            <option value="visa">Visa</option>
+                            <option value="certificate">Certificate</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="id_documents-${formIdx}-document_number" class="form-label">
+                            Document Number
+                        </label>
+                        <input type="text" name="documents-${formIdx}-document_number" class="form-control" id="id_documents-${formIdx}-document_number">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="id_documents-${formIdx}-issue_date" class="form-label">
+                            Issue Date
+                        </label>
+                        <input type="date" name="documents-${formIdx}-issue_date" class="form-control" id="id_documents-${formIdx}-issue_date">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="id_documents-${formIdx}-expiry_date" class="form-label">
+                            Expiry Date
+                        </label>
+                        <input type="date" name="documents-${formIdx}-expiry_date" class="form-control" id="id_documents-${formIdx}-expiry_date">
+                    </div>
+                </div>
+                <div class="row g-1 mt-1">
+                    <div class="col-md-4">
+                        <label for="id_documents-${formIdx}-issuing_authority" class="form-label">
+                            Issuing Authority
+                        </label>
+                        <input type="text" name="documents-${formIdx}-issuing_authority" class="form-control" id="id_documents-${formIdx}-issuing_authority">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="id_documents-${formIdx}-document_file" class="form-label">
+                            Document File
+                        </label>
+                        <input type="file" name="documents-${formIdx}-document_file" class="form-control" id="id_documents-${formIdx}-document_file">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="id_documents-${formIdx}-notes" class="form-label">
+                            Notes
+                        </label>
+                        <textarea name="documents-${formIdx}-notes" class="form-control" id="id_documents-${formIdx}-notes" rows="1"></textarea>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = formHtml;
+        return tempDiv.firstElementChild;
+    }
+    
+    // Camera and Photo Upload Functionality
+    let currentStream = null;
+    let capturedPhotoBlob = null;
+    
+    // Switch to camera mode
+    function switchToCamera() {
+        // Update toggle buttons
+        document.getElementById('camera-mode-btn').classList.add('active');
+        document.getElementById('file-mode-btn').classList.remove('active');
+        
+        // Show/hide appropriate sections
+        document.getElementById('camera-upload-area').style.display = 'flex';
+        document.getElementById('file-upload-area').style.display = 'none';
+        
+        // Clear any file input selection from file mode
+        const photoInput = document.getElementById('{{ form.photo.id_for_label }}');
+        if (photoInput && !capturedPhotoBlob) {
+            photoInput.value = '';
+        }
+        
+        // Reset camera UI based on whether we have a captured photo
+        if (capturedPhotoBlob) {
+            document.getElementById('camera-status').textContent = 'Photo captured - Click "Retake Photo" to take a new photo';
+            document.getElementById('camera-photo-preview').style.display = 'block';
+            document.getElementById('start-camera-btn').style.display = 'none';
+            document.getElementById('retake-camera-btn').style.display = 'inline-flex';
+        } else {
+            document.getElementById('camera-status').textContent = 'Click "Start Camera" to begin';
+            document.getElementById('camera-photo-preview').style.display = 'none';
+            document.getElementById('start-camera-btn').style.display = 'inline-flex';
+            document.getElementById('retake-camera-btn').style.display = 'none';
+        }
+        
+        // Always hide these buttons when switching to camera mode
+        document.getElementById('capture-btn').style.display = 'none';
+        document.getElementById('stop-camera-btn').style.display = 'none';
+        
+        hideError();
+    }
+    
+    // Switch to file upload mode
+    function switchToFile() {
+        // Update toggle buttons
+        document.getElementById('file-mode-btn').classList.add('active');
+        document.getElementById('camera-mode-btn').classList.remove('active');
+        
+        // Show/hide appropriate sections
+        document.getElementById('file-upload-area').style.display = 'flex';
+        document.getElementById('camera-upload-area').style.display = 'none';
+        
+        // Stop camera if running
+        stopCamera();
+        
+        // Clear captured photo when switching to file mode
+        clearCapturedPhoto();
+        
+        // Show file preview if there was a file selected
+        const photoInput = document.getElementById('{{ form.photo.id_for_label }}');
+        if (photoInput && photoInput.files && photoInput.files.length > 0) {
+            // Trigger the existing file preview functionality
+            photoInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        
+        hideError();
+    }
+    
+    // Clear captured photo
+    function clearCapturedPhoto() {
+        capturedPhotoBlob = null;
+        document.getElementById('camera-photo-preview').style.display = 'none';
+        
+        // Reset button states
+        document.getElementById('start-camera-btn').style.display = 'inline-flex';
+        document.getElementById('retake-camera-btn').style.display = 'none';
+        document.getElementById('capture-btn').style.display = 'none';
+        document.getElementById('stop-camera-btn').style.display = 'none';
+        
+        // Clear the photo input if it contains a captured photo
+        const photoInput = document.getElementById('{{ form.photo.id_for_label }}');
+        if (photoInput) {
+            photoInput.value = '';
+        }
+    }
+    
+    // Start camera stream
+    async function startCamera() {
+        try {
+            hideError();
+            updateCameraStatus('Requesting camera access...');
+            
+            // Hide captured photo preview when starting new session (don't clear the input yet)
+            document.getElementById('camera-photo-preview').style.display = 'none';
+            
+            const constraints = {
+                video: {
+                    width: { ideal: 640 },
+                    height: { ideal: 480 },
+                    facingMode: 'user' // Front-facing camera
+                }
+            };
+            
+            currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+            
+            const video = document.getElementById('camera-video');
+            video.srcObject = currentStream;
+            video.style.display = 'block';
+            
+            // Update UI
+            document.getElementById('start-camera-btn').style.display = 'none';
+            document.getElementById('capture-btn').style.display = 'inline-flex';
+            document.getElementById('stop-camera-btn').style.display = 'inline-flex';
+            
+            updateCameraStatus('Camera ready - Click "Capture" to take photo');
+            
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            let errorMessage = 'Camera access failed. ';
+            
+            if (error.name === 'NotAllowedError') {
+                errorMessage += 'Please allow camera access and try again.';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage += 'No camera found on this device.';
+            } else if (error.name === 'NotSupportedError') {
+                errorMessage += 'Camera not supported in this browser.';
+            } else {
+                errorMessage += 'Please check your camera settings.';
+            }
+            
+            showError(errorMessage);
+            updateCameraStatus('Camera unavailable');
+        }
+    }
+    
+    // Stop camera stream
+    function stopCamera() {
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+            currentStream = null;
+        }
+        
+        const video = document.getElementById('camera-video');
+        video.style.display = 'none';
+        video.srcObject = null;
+        
+        // Update UI based on whether we have a captured photo
+        if (!capturedPhotoBlob) {
+            // No photo captured - show start button
+            document.getElementById('start-camera-btn').style.display = 'inline-flex';
+            document.getElementById('retake-camera-btn').style.display = 'none';
+            document.getElementById('camera-photo-preview').style.display = 'none';
+            updateCameraStatus('Camera stopped - Click "Start Camera" to begin');
+        } else {
+            // Photo captured - show retake button
+            document.getElementById('start-camera-btn').style.display = 'none';
+            document.getElementById('retake-camera-btn').style.display = 'inline-flex';
+            updateCameraStatus('Photo captured - Click "Retake Photo" to take a new photo');
+        }
+        
+        // Always hide capture and stop buttons
+        document.getElementById('capture-btn').style.display = 'none';
+        document.getElementById('stop-camera-btn').style.display = 'none';
+        
+        hideError();
+    }
+    
+    // Capture photo from camera
+    function capturePhoto() {
+        const video = document.getElementById('camera-video');
+        const canvas = document.getElementById('camera-canvas');
+        const context = canvas.getContext('2d');
+        
+        // Set canvas dimensions to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Draw video frame to canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert canvas to blob
+        canvas.toBlob(function(blob) {
+            capturedPhotoBlob = blob;
+            
+            // Show preview
+            const preview = document.getElementById('camera-photo-preview');
+            const previewImg = document.getElementById('camera-photo-preview-img');
+            
+            const url = URL.createObjectURL(blob);
+            previewImg.src = url;
+            preview.style.display = 'block';
+            
+            // Create a file object and set it to the input
+            const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+            
+            // Create a new FileList with the captured photo
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            
+            const photoInput = document.getElementById('{{ form.photo.id_for_label }}');
+            photoInput.files = dataTransfer.files;
+            
+            // Trigger change event for form validation
+            photoInput.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            updateCameraStatus('Photo captured successfully!');
+            
+            // Stop camera after capture but keep the photo visible
+            setTimeout(() => {
+                stopCamera();
+            }, 1500);
+            
+        }, 'image/jpeg', 0.9);
+    }
+    
+    // Helper functions
+    function updateCameraStatus(message) {
+        document.getElementById('camera-status').textContent = message;
+    }
+    
+    function showError(message) {
+        const errorElement = document.getElementById('camera-error');
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    }
+    
+    function hideError() {
+        document.getElementById('camera-error').style.display = 'none';
+    }
+    
+    // Calculate age from date of birth
+    function calculateAge(dateOfBirth) {
+        if (!dateOfBirth) return null;
+        
+        const today = new Date();
+        const birthDate = new Date(dateOfBirth);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        
+        return age;
+    }
+    
+    // Update age display when date of birth changes
+    function updateAgeDisplay() {
+        const dobInput = document.getElementById('{{ form.dob.id_for_label }}');
+        const ageDisplay = document.getElementById('calculated-age');
+        
+        if (dobInput && ageDisplay) {
+            const age = calculateAge(dobInput.value);
+            if (age !== null && age >= 0) {
+                ageDisplay.textContent = age;
+                ageDisplay.parentElement.style.color = age >= 18 ? '#10b981' : '#ef4444';
+            } else {
+                ageDisplay.textContent = '--';
+                ageDisplay.parentElement.style.color = '#6b7280';
+            }
+        }
+    }
+    
+    // Auto-fill full name from first and last name
+    function updateFullName() {
+        const firstNameInput = document.getElementById('{{ form.first_name.id_for_label }}');
+        const lastNameInput = document.getElementById('{{ form.last_name.id_for_label }}');
+        const fullNameInput = document.getElementById('{{ form.name.id_for_label }}');
+        
+        if (firstNameInput && lastNameInput && fullNameInput) {
+            // Only auto-fill if the full name field is empty
+            if (!fullNameInput.value.trim()) {
+                const firstName = firstNameInput.value.trim();
+                const lastName = lastNameInput.value.trim();
+                
+                if (firstName || lastName) {
+                    fullNameInput.value = `${firstName} ${lastName}`.trim();
+                }
+            }
+        }
+    }
+    
+    // Validate phone number format
+    function validatePhoneNumber(phoneNumber) {
+        // Allow formats: +855123456789, 855123456789, 0123456789
+        const phoneRegex = /^(\+?855|0)[0-9]{8,9}$/;
+        return phoneRegex.test(phoneNumber.replace(/\s+/g, ''));
+    }
+    
+    // Format phone number as user types
+    function formatPhoneNumber(input) {
+        let value = input.value.replace(/\s+/g, '');
+        
+        // Add +855 prefix if user starts with 0
+        if (value.startsWith('0') && value.length > 1) {
+            value = '+855' + value.substring(1);
+            input.value = value;
+        }
+        
+        // Validate and show feedback
+        const isValid = validatePhoneNumber(value);
+        input.classList.toggle('is-valid', isValid && value.length > 0);
+        input.classList.toggle('is-invalid', !isValid && value.length > 0);
+    }
+    
+    // Enhanced form validation
+    function validatePersonalInformation() {
+        let isValid = true;
+        const errors = [];
+        
+        // Check required fields
+        const requiredFields = [
+            { id: '{{ form.first_name.id_for_label }}', name: 'First Name' },
+            { id: '{{ form.last_name.id_for_label }}', name: 'Last Name' },
+            { id: '{{ form.sex.id_for_label }}', name: 'Gender' },
+            { id: '{{ form.dob.id_for_label }}', name: 'Date of Birth' },
+            { id: '{{ form.nationality.id_for_label }}', name: 'Nationality' },
+            { id: '{{ form.phone_number.id_for_label }}', name: 'Phone Number' },
+            { id: '{{ form.emergency_contact.id_for_label }}', name: 'Emergency Contact' },
+            { id: '{{ form.emergency_phone.id_for_label }}', name: 'Emergency Phone' },
+            { id: '{{ form.address.id_for_label }}', name: 'Address' }
+        ];
+        
+        requiredFields.forEach(field => {
+            const input = document.getElementById(field.id);
+            if (input && !input.value.trim()) {
+                errors.push(`${field.name} is required`);
+                input.classList.add('is-invalid');
+                isValid = false;
+            } else if (input) {
+                input.classList.remove('is-invalid');
+            }
+        });
+        
+        // Check age requirement
+        const dobInput = document.getElementById('{{ form.dob.id_for_label }}');
+        if (dobInput && dobInput.value) {
+            const age = calculateAge(dobInput.value);
+            if (age < 16) {
+                errors.push('Worker must be at least 16 years old');
+                dobInput.classList.add('is-invalid');
+                isValid = false;
+            }
+        }
+        
+        // Check phone number format
+        const phoneInput = document.getElementById('{{ form.phone_number.id_for_label }}');
+        if (phoneInput && phoneInput.value && !validatePhoneNumber(phoneInput.value)) {
+            errors.push('Phone number format is invalid');
+            phoneInput.classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        // Check photo requirement
+        const photoInput = document.getElementById('{{ form.photo.id_for_label }}');
+        if (photoInput && (!photoInput.files || photoInput.files.length === 0) && !capturedPhotoBlob) {
+            errors.push('Worker photo is required');
+            isValid = false;
+        }
+        
+        return { isValid, errors };
+    }
+    
+    // Check camera support on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showError('Camera not supported in this browser');
+            // Default to file upload mode if camera not supported
+            switchToFile();
+        }
+        
+        // Set up event listeners
+        const dobInput = document.getElementById('{{ form.dob.id_for_label }}');
+        if (dobInput) {
+            dobInput.addEventListener('change', updateAgeDisplay);
+            updateAgeDisplay(); // Initial calculation
+        }
+        
+        const firstNameInput = document.getElementById('{{ form.first_name.id_for_label }}');
+        const lastNameInput = document.getElementById('{{ form.last_name.id_for_label }}');
+        
+        if (firstNameInput) {
+            firstNameInput.addEventListener('blur', updateFullName);
+        }
+        if (lastNameInput) {
+            lastNameInput.addEventListener('blur', updateFullName);
+        }
+        
+        const phoneInput = document.getElementById('{{ form.phone_number.id_for_label }}');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function() {
+                formatPhoneNumber(this);
+            });
+        }
+        
+        const emergencyPhoneInput = document.getElementById('{{ form.emergency_phone.id_for_label }}');
+        if (emergencyPhoneInput) {
+            emergencyPhoneInput.addEventListener('input', function() {
+                formatPhoneNumber(this);
+            });
+        }
+        
+        // Enhanced form submission with UI feedback
+        const form = document.querySelector('form');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        if (form && submitBtn) {
+            form.addEventListener('submit', function(e) {
+                const validation = validatePersonalInformation();
+                if (!validation.isValid) {
+                    e.preventDefault();
+                    
+                    // Show toast error instead of alert
+                    toast.error('Please fix the following errors:\n' + validation.errors.join('\n'));
+                    
+                    // Highlight first invalid field
+                    const firstInvalidField = form.querySelector('.is-invalid');
+                    if (firstInvalidField) {
+                        firstInvalidField.focus();
+                        firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    
+                    return false;
+                }
+                
+                // Show loading state
+                setButtonLoading(submitBtn, true);
+                loading.show();
+                
+                // Show success message (will be enhanced by server response)
+                toast.info('Saving worker information...');
+            });
+        }
+        
+        // Success feedback will be handled by page refresh
+        
+        // File input change handler for photo preview
+        const photoInput = document.getElementById('{{ form.photo.id_for_label }}');
+        if (photoInput) {
+            photoInput.addEventListener('change', function() {
+                const file = this.files[0];
+                const preview = document.getElementById('photo-preview');
+                const previewImg = document.getElementById('photo-preview-img');
+                const placeholder = document.getElementById('photo-placeholder');
+                
+                if (file && preview && previewImg) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImg.src = e.target.result;
+                        preview.style.display = 'block';
+                        if (placeholder) {
+                            placeholder.style.display = 'none';
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        // Initialize OCR components
+        initializeOCR();
+    });
+    
+    // OCR Passport Scanner Functions
+    function initializeOCR() {
+        const dropZone = document.getElementById('passportDropZone');
+        const fileInput = document.getElementById('passportInput');
+        
+        // Drag and drop handlers
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropZone.style.borderColor = '#667eea';
+            dropZone.style.background = '#f7fafc';
+        });
+        
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            dropZone.style.borderColor = '#cbd5e0';
+            dropZone.style.background = '#ffffff';
+        });
+        
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropZone.style.borderColor = '#cbd5e0';
+            dropZone.style.background = '#ffffff';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+    }
+    
+    function handlePassportUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            handleFileUpload(file);
+        }
+    }
+    
+    function handleFileUpload(file) {
+        // Validate file
+        if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+            toast.error('Please upload an image or PDF file');
+            return;
+        }
+        
+        if (file.size > 10 * 1024 * 1024) { // 10MB limit
+            toast.error('File size must be less than 10MB');
+            return;
+        }
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            const dropContent = document.getElementById('dropZoneContent');
+            
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+            dropContent.style.display = 'none';
+            
+            // Enable process button
+            document.getElementById('processBtn').disabled = false;
+            
+            // Update status
+            updateOCRStatus('uploading');
+            setTimeout(() => {
+                updateOCRStatus('waiting');
+            }, 1000);
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    function removePassportImage() {
+        // Reset UI
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('dropZoneContent').style.display = 'block';
+        document.getElementById('passportInput').value = '';
+        document.getElementById('processBtn').disabled = true;
+        
+        // Clear extracted data
+        hideExtractedData();
+        updateOCRStatus('waiting');
+    }
+    
+    function processPassport() {
+        const fileInput = document.getElementById('passportInput');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            toast.error('Please upload a passport image first');
+            return;
+        }
+        
+        // Show processing status
+        updateOCRStatus('processing');
+        
+        // Simulate OCR processing (replace with actual API call)
+        setTimeout(() => {
+            // Mock extracted data
+            extractedData = {
+                firstName: 'YOHANES BAPTISTA',
+                lastName: 'JALU',
+                dateOfBirth: '1982-05-25',
+                gender: 'M',
+                nationality: 'IDN',
+                passportNumber: 'X1377022',
+                expiryDate: '2027-08-11',
+                issuingCountry: 'IDN'
+            };
+            
+            displayExtractedData(extractedData);
+            updateOCRStatus('completed');
+            toast.success('Passport data extracted successfully!');
+        }, 3000);
+    }
+    
+    function updateOCRStatus(status) {
+        const statusItems = document.querySelectorAll('.status-item');
+        statusItems.forEach(item => item.classList.remove('active', 'completed'));
+        
+        switch(status) {
+            case 'waiting':
+                document.querySelector('.status-item.waiting').classList.add('active');
+                break;
+            case 'uploading':
+                document.querySelector('.status-item.uploading').classList.add('active');
+                break;
+            case 'processing':
+                document.querySelector('.status-item.processing').classList.add('active');
+                break;
+            case 'completed':
+                document.querySelector('.status-item.completed').classList.add('completed');
+                break;
+        }
+    }
+    
+    function displayExtractedData(data) {
+        // Show extracted fields
+        document.getElementById('noDataState').style.display = 'none';
+        document.getElementById('extractedFields').style.display = 'block';
+        
+        // Populate fields
+        document.getElementById('extractedFirstName').textContent = data.firstName || '-';
+        document.getElementById('extractedLastName').textContent = data.lastName || '-';
+        document.getElementById('extractedDOB').textContent = data.dateOfBirth || '-';
+        document.getElementById('extractedGender').textContent = data.gender === 'M' ? 'Male' : data.gender === 'F' ? 'Female' : '-';
+        document.getElementById('extractedNationality').textContent = data.nationality || '-';
+        document.getElementById('extractedPassportNo').textContent = data.passportNumber || '-';
+        document.getElementById('extractedExpiry').textContent = data.expiryDate || '-';
+        document.getElementById('extractedCountry').textContent = data.issuingCountry || '-';
+    }
+    
+    function hideExtractedData() {
+        document.getElementById('noDataState').style.display = 'block';
+        document.getElementById('extractedFields').style.display = 'none';
+        extractedData = null;
+    }
+    
+    function applyToForm() {
+        if (!extractedData) {
+            toast.error('No extracted data available');
+            return;
+        }
+        
+        // Apply data to form fields
+        if (extractedData.firstName) {
+            const firstNameInput = document.getElementById('{{ form.first_name.id_for_label }}');
+            if (firstNameInput) firstNameInput.value = extractedData.firstName;
+        }
+        
+        if (extractedData.lastName) {
+            const lastNameInput = document.getElementById('{{ form.last_name.id_for_label }}');
+            if (lastNameInput) lastNameInput.value = extractedData.lastName;
+        }
+        
+        if (extractedData.dateOfBirth) {
+            const dobInput = document.getElementById('{{ form.dob.id_for_label }}');
+            if (dobInput) {
+                dobInput.value = extractedData.dateOfBirth;
+                updateAgeDisplay();
+            }
+        }
+        
+        if (extractedData.gender) {
+            const genderInput = document.getElementById('{{ form.sex.id_for_label }}');
+            if (genderInput) genderInput.value = extractedData.gender;
+        }
+        
+        if (extractedData.nationality) {
+            const nationalityInput = document.getElementById('{{ form.nationality.id_for_label }}');
+            if (nationalityInput) {
+                // Map country code to nationality options
+                const nationalityMapping = {
+                    'IDN': 'ID',
+                    'THA': 'TH',
+                    'VNM': 'VN',
+                    'KHM': 'KH',
+                    'MYS': 'MY',
+                    'MMR': 'MM',
+                    'LAO': 'LA',
+                    'SGP': 'SG',
+                    'BRN': 'BN'
+                };
+                const mappedNationality = nationalityMapping[extractedData.nationality] || extractedData.nationality;
+                nationalityInput.value = mappedNationality;
+            }
+        }
+        
+        // Auto-fill full name
+        updateFullName();
+        
+        toast.success('Data applied to form successfully!');
+        
+        // Scroll to personal information section
+        document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function editBeforeApply() {
+        if (!extractedData) {
+            toast.error('No extracted data available');
+            return;
+        }
+        
+        // Make fields editable
+        const fields = document.querySelectorAll('#extractedFields .field-value');
+        fields.forEach(field => {
+            field.style.background = '#ffffff';
+            field.contentEditable = true;
+            field.style.cursor = 'text';
+            field.addEventListener('blur', function() {
+                // Update extracted data when field is edited
+                const fieldId = this.id;
+                const value = this.textContent;
+                
+                switch(fieldId) {
+                    case 'extractedFirstName':
+                        extractedData.firstName = value;
+                        break;
+                    case 'extractedLastName':
+                        extractedData.lastName = value;
+                        break;
+                    case 'extractedDOB':
+                        extractedData.dateOfBirth = value;
+                        break;
+                    case 'extractedGender':
+                        extractedData.gender = value === 'Male' ? 'M' : value === 'Female' ? 'F' : value;
+                        break;
+                    case 'extractedNationality':
+                        extractedData.nationality = value;
+                        break;
+                    case 'extractedPassportNo':
+                        extractedData.passportNumber = value;
+                        break;
+                    case 'extractedExpiry':
+                        extractedData.expiryDate = value;
+                        break;
+                    case 'extractedCountry':
+                        extractedData.issuingCountry = value;
+                        break;
+                }
+            });
+        });
+        
+        toast.info('Fields are now editable. Click outside to save changes.');
+    }
+    
+    function clearOCR() {
+        // Reset everything
+        removePassportImage();
+        hideExtractedData();
+        extractedData = null;
+        
+        // Reset status
+        updateOCRStatus('waiting');
+        
+        toast.info('OCR scanner reset');
+    }
+    // OCR Document Scanner Functions
+    let extractedData = null;
+    let currentDocumentType = 'passport';
+    
+    function selectDocumentType(type) {
+        currentDocumentType = type;
+        
+        // Update tab appearance
+        document.querySelectorAll('.document-type-tab-compact').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`[data-type="${type}"]`).classList.add('active');
+        
+        // Update drop zone content
+        const dropZoneIcon = document.getElementById('dropZoneIcon');
+        const dropZoneTitle = document.getElementById('dropZoneTitle');
+        
+        const config = {
+            passport: {
+                icon: 'bi-passport',
+                title: 'Drop passport image here'
+            },
+            visa: {
+                icon: 'bi-card-text',
+                title: 'Drop visa image here'
+            },
+            work_permit: {
+                icon: 'bi-briefcase',
+                title: 'Drop work permit image here'
+            }
+        };
+        
+        dropZoneIcon.className = `bi ${config[type].icon}`;
+        dropZoneTitle.textContent = config[type].title;
+        
+        // Hide all document fields and show the relevant one
+        document.querySelectorAll('.document-fields').forEach(field => {
+            field.style.display = 'none';
+        });
+        
+        // Clear any existing data
+        if (extractedData) {
+            hideExtractedData();
+            extractedData = null;
+        }
+        
+        toast.info(`Switched to ${type.replace('_', ' ')} mode`);
+    }
+    
+    function initializeOCR() {
+        const dropZone = document.getElementById('passportDropZone');
+        
+        if (dropZone) {
+            // Drag and drop handlers
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                dropZone.style.borderColor = '#667eea';
+                dropZone.style.background = '#f7fafc';
+            });
+            
+            dropZone.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                dropZone.style.borderColor = '#cbd5e0';
+                dropZone.style.background = '#ffffff';
+            });
+            
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dropZone.style.borderColor = '#cbd5e0';
+                dropZone.style.background = '#ffffff';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload(files[0]);
+                }
+            });
+        }
+    }
+    
+    function handlePassportUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+            handleFileUpload(file);
+        }
+    }
+    
+    function handleFileUpload(file) {
+        // Validate file
+        if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+            toast.error('Please upload an image or PDF file');
+            return;
+        }
+        
+        if (file.size > 10 * 1024 * 1024) { // 10MB limit
+            toast.error('File size must be less than 10MB');
+            return;
+        }
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('imagePreview');
+            const previewImg = document.getElementById('previewImg');
+            const dropContent = document.getElementById('dropZoneContent');
+            
+            if (preview && previewImg && dropContent) {
+                previewImg.src = e.target.result;
+                preview.style.display = 'block';
+                dropContent.style.display = 'none';
+            }
+            
+            // Enable process button
+            const processBtn = document.getElementById('processBtn');
+            if (processBtn) processBtn.disabled = false;
+            
+            // Update status
+            updateOCRStatus('uploading');
+            setTimeout(() => {
+                updateOCRStatus('waiting');
+            }, 1000);
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    function removePassportImage() {
+        // Reset UI
+        const preview = document.getElementById('imagePreview');
+        const dropContent = document.getElementById('dropZoneContent');
+        const input = document.getElementById('passportInput');
+        const processBtn = document.getElementById('processBtn');
+        
+        if (preview) preview.style.display = 'none';
+        if (dropContent) dropContent.style.display = 'block';
+        if (input) input.value = '';
+        if (processBtn) processBtn.disabled = true;
+        
+        // Clear extracted data
+        hideExtractedData();
+        updateOCRStatus('waiting');
+    }
+    
+    function processPassport() {
+        const fileInput = document.getElementById('passportInput');
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+            toast.error(`Please upload a ${currentDocumentType.replace('_', ' ')} image first`);
+            return;
+        }
+        
+        // Show processing status
+        updateOCRStatus('processing');
+        
+        // Simulate OCR processing (replace with actual API call)
+        setTimeout(() => {
+            // Mock extracted data based on document type
+            const mockData = {
+                passport: {
+                    firstName: 'YOHANES BAPTISTA',
+                    lastName: 'JALU',
+                    dateOfBirth: '1982-05-25',
+                    gender: 'M',
+                    nationality: 'IDN',
+                    passportNumber: 'X1377022',
+                    expiryDate: '2027-08-11',
+                    issuingCountry: 'IDN'
+                },
+                visa: {
+                    firstName: 'YOHANES BAPTISTA',
+                    lastName: 'JALU',
+                    visaType: 'BUSINESS VISA',
+                    visaNumber: 'B201234567',
+                    issueDate: '2023-06-15',
+                    expiryDate: '2024-06-14',
+                    entries: 'MULTIPLE',
+                    issuingCountry: 'THA'
+                },
+                work_permit: {
+                    firstName: 'YOHANES BAPTISTA',
+                    lastName: 'JALU',
+                    permitNumber: 'WP2024001234',
+                    permitType: 'SKILLED WORKER',
+                    issueDate: '2024-01-15',
+                    expiryDate: '2026-01-14',
+                    employer: 'ABC COMPANY LTD',
+                    jobPosition: 'SOFTWARE ENGINEER'
+                }
+            };
+            
+            extractedData = mockData[currentDocumentType];
+            
+            displayExtractedData(extractedData);
+            updateOCRStatus('completed');
+            toast.success(`${currentDocumentType.replace('_', ' ').toUpperCase()} data extracted successfully!`);
+        }, 3000);
+    }
+    
+    function updateOCRStatus(status) {
+        const statusItems = document.querySelectorAll('.status-item');
+        statusItems.forEach(item => item.classList.remove('active', 'completed'));
+        
+        switch(status) {
+            case 'waiting':
+                const waiting = document.querySelector('.status-item.waiting');
+                if (waiting) waiting.classList.add('active');
+                break;
+            case 'uploading':
+                const uploading = document.querySelector('.status-item.uploading');
+                if (uploading) uploading.classList.add('active');
+                break;
+            case 'processing':
+                const processing = document.querySelector('.status-item.processing');
+                if (processing) processing.classList.add('active');
+                break;
+            case 'completed':
+                const completed = document.querySelector('.status-item.completed');
+                if (completed) completed.classList.add('completed');
+                break;
+        }
+    }
+    
+    function displayExtractedData(data) {
+        // Show extracted fields
+        const noDataState = document.getElementById('noDataState');
+        const extractedFields = document.getElementById('extractedFields');
+        
+        if (noDataState) noDataState.style.display = 'none';
+        if (extractedFields) extractedFields.style.display = 'block';
+        
+        // Hide all document fields first
+        document.querySelectorAll('.document-fields').forEach(field => {
+            field.style.display = 'none';
+        });
+        
+        // Show and populate fields based on document type
+        if (currentDocumentType === 'passport') {
+            document.getElementById('passportFields').style.display = 'block';
+            const fields = {
+                'extractedFirstName': data.firstName,
+                'extractedLastName': data.lastName,
+                'extractedDOB': data.dateOfBirth,
+                'extractedGender': data.gender === 'M' ? 'Male' : data.gender === 'F' ? 'Female' : '-',
+                'extractedNationality': data.nationality,
+                'extractedPassportNo': data.passportNumber,
+                'extractedExpiry': data.expiryDate,
+                'extractedCountry': data.issuingCountry
+            };
+            Object.keys(fields).forEach(fieldId => {
+                const element = document.getElementById(fieldId);
+                if (element) element.textContent = fields[fieldId] || '-';
+            });
+        } else if (currentDocumentType === 'visa') {
+            document.getElementById('visaFields').style.display = 'block';
+            const fields = {
+                'extractedVisaFirstName': data.firstName,
+                'extractedVisaLastName': data.lastName,
+                'extractedVisaType': data.visaType,
+                'extractedVisaNumber': data.visaNumber,
+                'extractedVisaIssueDate': data.issueDate,
+                'extractedVisaExpiry': data.expiryDate,
+                'extractedVisaEntries': data.entries,
+                'extractedVisaCountry': data.issuingCountry
+            };
+            Object.keys(fields).forEach(fieldId => {
+                const element = document.getElementById(fieldId);
+                if (element) element.textContent = fields[fieldId] || '-';
+            });
+        } else if (currentDocumentType === 'work_permit') {
+            document.getElementById('workPermitFields').style.display = 'block';
+            const fields = {
+                'extractedWPFirstName': data.firstName,
+                'extractedWPLastName': data.lastName,
+                'extractedPermitNumber': data.permitNumber,
+                'extractedPermitType': data.permitType,
+                'extractedWPIssueDate': data.issueDate,
+                'extractedWPExpiry': data.expiryDate,
+                'extractedEmployer': data.employer,
+                'extractedJobPosition': data.jobPosition
+            };
+            Object.keys(fields).forEach(fieldId => {
+                const element = document.getElementById(fieldId);
+                if (element) element.textContent = fields[fieldId] || '-';
+            });
+        }
+    }
+    
+    function hideExtractedData() {
+        const noDataState = document.getElementById('noDataState');
+        const extractedFields = document.getElementById('extractedFields');
+        
+        if (noDataState) noDataState.style.display = 'block';
+        if (extractedFields) extractedFields.style.display = 'none';
+        extractedData = null;
+    }
+    
+    function applyToForm() {
+        if (!extractedData) {
+            toast.error('No extracted data available');
+            return;
+        }
+        
+        if (currentDocumentType === 'passport') {
+            // Apply passport data to personal information fields
+            const formFields = {
+                '{{ form.first_name.id_for_label }}': extractedData.firstName,
+                '{{ form.last_name.id_for_label }}': extractedData.lastName,
+                '{{ form.dob.id_for_label }}': extractedData.dateOfBirth,
+                '{{ form.sex.id_for_label }}': extractedData.gender
+            };
+            
+            Object.keys(formFields).forEach(fieldId => {
+                const input = document.getElementById(fieldId);
+                if (input && formFields[fieldId]) {
+                    input.value = formFields[fieldId];
+                }
+            });
+            
+            // Handle nationality mapping
+            if (extractedData.nationality) {
+                const nationalityInput = document.getElementById('{{ form.nationality.id_for_label }}');
+                if (nationalityInput) {
+                    const nationalityMapping = {
+                        'IDN': 'ID', 'THA': 'TH', 'VNM': 'VN', 'KHM': 'KH',
+                        'MYS': 'MY', 'MMR': 'MM', 'LAO': 'LA', 'SGP': 'SG', 'BRN': 'BN'
+                    };
+                    const mappedNationality = nationalityMapping[extractedData.nationality] || extractedData.nationality;
+                    nationalityInput.value = mappedNationality;
+                }
+            }
+            
+            // Auto-fill full name and update age
+            updateFullName();
+            updateAgeDisplay();
+            
+            toast.success('Passport data applied to personal information form!');
+            
+            // Scroll to personal information section
+            document.querySelector('.application-form-section').scrollIntoView({ behavior: 'smooth' });
+            
+        } else if (currentDocumentType === 'visa' || currentDocumentType === 'work_permit') {
+            // Apply name data to personal information if empty
+            const firstNameInput = document.getElementById('{{ form.first_name.id_for_label }}');
+            const lastNameInput = document.getElementById('{{ form.last_name.id_for_label }}');
+            
+            if (firstNameInput && !firstNameInput.value && extractedData.firstName) {
+                firstNameInput.value = extractedData.firstName;
+            }
+            if (lastNameInput && !lastNameInput.value && extractedData.lastName) {
+                lastNameInput.value = extractedData.lastName;
+            }
+            
+            // Auto-fill full name
+            updateFullName();
+            
+            toast.success(`${currentDocumentType.replace('_', ' ').toUpperCase()} data applied! Please add this document in the Documents section below.`);
+            
+            // Scroll to documents section
+            const documentsSection = document.querySelector('.documents-section');
+            if (documentsSection) {
+                documentsSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }
+    
+    function editBeforeApply() {
+        if (!extractedData) {
+            toast.error('No extracted data available');
+            return;
+        }
+        
+        // Make fields editable for the current document type
+        const currentFieldsSelector = currentDocumentType === 'passport' ? '#passportFields .field-value' :
+                                      currentDocumentType === 'visa' ? '#visaFields .field-value' :
+                                      '#workPermitFields .field-value';
+        
+        const fields = document.querySelectorAll(currentFieldsSelector);
+        fields.forEach(field => {
+            field.style.background = '#ffffff';
+            field.contentEditable = true;
+            field.style.cursor = 'text';
+            field.style.border = '1px solid #667eea';
+            field.style.borderRadius = '4px';
+            field.style.padding = '4px 6px';
+        });
+        
+        toast.info(`${currentDocumentType.replace('_', ' ').toUpperCase()} fields are now editable. Click outside to save changes.`);
+    }
+    
+    function clearOCR() {
+        // Reset everything
+        removePassportImage();
+        hideExtractedData();
+        extractedData = null;
+        
+        // Reset status
+        updateOCRStatus('waiting');
+        
+        toast.info('OCR scanner reset');
+    }
+    
+    // Initialize OCR on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeOCR();
+        
+        // Handle photo display logic for editing workers
+        {% if worker and worker.photo %}
+        // If editing a worker with a photo, show file upload mode by default
+        const fileUploadArea = document.getElementById('file-upload-area');
+        const cameraUploadArea = document.getElementById('camera-upload-area');
+        
+        if (fileUploadArea && cameraUploadArea) {
+            fileUploadArea.style.display = 'flex';
+            cameraUploadArea.style.display = 'none';
+        }
+        {% endif %}
+    });
+    </script>
+
+<script src="{% static 'sinosecu/js/app.js' %}"></script>
+
+{% endblock %} 
